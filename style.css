@@ -74,6 +74,14 @@ button:disabled {
   opacity: 0.6;
 }
 
+.delete-btn {
+  background: #b91c1c;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: #991b1b;
+}
+
 .notes-header {
   display: flex;
   align-items: center;

@@ -15,7 +15,7 @@ async function request(url, options = {}) {
     throw new Error(`Request failed with status ${response.status}`);
   }
 
-  const data = await response.json();
+  const data = response.status === 204 ? null : await response.json();
 
   return {
     data,
@@ -32,22 +32,33 @@ function createNoteElement(note) {
   const listItem = document.createElement("li");
   const title = document.createElement("h3");
   const body = document.createElement("p");
+  const deleteButton = document.createElement("button");
 
   title.textContent = note.title;
   body.textContent = note.body;
+  deleteButton.type = "button";
+  deleteButton.className = "delete-btn";
+  deleteButton.textContent = "Delete";
+  deleteButton.addEventListener("click", () => {
+    deleteNote(note.id, listItem, deleteButton);
+  });
 
-  listItem.append(title, body);
+  listItem.append(title, body, deleteButton);
   return listItem;
+}
+
+function showEmptyState() {
+  const emptyMessage = document.createElement("li");
+  emptyMessage.className = "empty-state";
+  emptyMessage.textContent = "No notes found.";
+  notesList.append(emptyMessage);
 }
 
 function displayNotes(notes) {
   notesList.replaceChildren();
 
   if (notes.length === 0) {
-    const emptyMessage = document.createElement("li");
-    emptyMessage.className = "empty-state";
-    emptyMessage.textContent = "No notes found.";
-    notesList.append(emptyMessage);
+    showEmptyState();
     return;
   }
 
@@ -118,6 +129,33 @@ async function createNote(event) {
     console.error("Failed to create note:", error);
   } finally {
     submitButton.disabled = false;
+  }
+}
+
+async function deleteNote(noteId, noteElement, deleteButton) {
+  deleteButton.disabled = true;
+  deleteButton.textContent = "Deleting...";
+  showStatus("Deleting note...", "loading");
+
+  try {
+    const { status } = await request(`${API_URL}/${noteId}`, {
+      method: "DELETE"
+    });
+
+    // JSONPlaceholder simulates deletion but does not persist it. Removing the
+    // item locally gives the user the expected result for this practice client.
+    noteElement.remove();
+
+    if (notesList.children.length === 0) {
+      showEmptyState();
+    }
+
+    showStatus(`Note deleted (status ${status}).`, "success");
+  } catch (error) {
+    showStatus("We could not delete the note. Please try again.", "error");
+    console.error("Failed to delete note:", error);
+    deleteButton.disabled = false;
+    deleteButton.textContent = "Delete";
   }
 }
 
