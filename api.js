@@ -1,5 +1,48 @@
 const API_URL = "https://jsonplaceholder.typicode.com/posts";
 
+const ENGLISH_DEMO_NOTES = [
+  {
+    title: "Plan the week",
+    body: "Review the calendar, choose the top priorities, and schedule focused work time."
+  },
+  {
+    title: "Project ideas",
+    body: "Build a shared reading list, a habit tracker, or a simple budget dashboard."
+  },
+  {
+    title: "Meeting notes",
+    body: "Confirm the project scope, assign owners, and agree on the next review date."
+  },
+  {
+    title: "Shopping list",
+    body: "Buy coffee, rice, vegetables, fruit, and cleaning supplies."
+  },
+  {
+    title: "Books to read",
+    body: "Choose one technical book and one novel for this month."
+  },
+  {
+    title: "Weekend tasks",
+    body: "Clean the workspace, back up important files, and prepare meals for the week."
+  },
+  {
+    title: "Learning goals",
+    body: "Practise JavaScript, review REST API design, and write three SQL queries."
+  },
+  {
+    title: "Travel checklist",
+    body: "Pack identification, chargers, medication, comfortable clothes, and a water bottle."
+  },
+  {
+    title: "Release checklist",
+    body: "Run the tests, review accessibility, check monitoring, and prepare a rollback plan."
+  },
+  {
+    title: "Daily reflection",
+    body: "Write down what went well, what was difficult, and one improvement for tomorrow."
+  }
+];
+
 const loadButton = document.querySelector("#load-btn");
 const statusMessage = document.querySelector("#status");
 const notesList = document.querySelector("#notes-list");
@@ -77,8 +120,14 @@ async function loadNotes() {
 
   try {
     const { data: notes } = await request(`${API_URL}?_limit=10`);
+    // JSONPlaceholder supplies Latin-style filler text. Keep its IDs so DELETE
+    // requests still target the fetched resources, but show readable demo copy.
+    const englishNotes = notes.map((note, index) => {
+      const englishCopy = ENGLISH_DEMO_NOTES[index];
+      return englishCopy ? { ...note, ...englishCopy } : note;
+    });
 
-    displayNotes(notes);
+    displayNotes(englishNotes);
     showStatus(`Loaded ${notes.length} notes from the server.`, "success");
   } catch (error) {
     notesList.replaceChildren();
