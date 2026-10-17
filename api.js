@@ -3,6 +3,10 @@ const API_URL = "https://jsonplaceholder.typicode.com/posts";
 const loadButton = document.querySelector("#load-btn");
 const statusMessage = document.querySelector("#status");
 const notesList = document.querySelector("#notes-list");
+const noteForm = document.querySelector("#note-form");
+const titleInput = document.querySelector("#title-input");
+const bodyInput = document.querySelector("#body-input");
+const submitButton = document.querySelector("#submit-btn");
 
 async function request(url, options = {}) {
   const response = await fetch(url, options);
@@ -74,4 +78,48 @@ async function loadNotes() {
   }
 }
 
+async function createNote(event) {
+  event.preventDefault();
+
+  const title = titleInput.value.trim();
+  const body = bodyInput.value.trim();
+
+  if (!title) {
+    showStatus("Please enter a title.", "error");
+    titleInput.focus();
+    return;
+  }
+
+  if (title.length > 100) {
+    showStatus("The title must be 100 characters or fewer.", "error");
+    titleInput.focus();
+    return;
+  }
+
+  submitButton.disabled = true;
+  showStatus("Creating note...", "loading");
+
+  try {
+    const { data: note, status } = await request(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ title, body, userId: 1 })
+    });
+
+    const emptyMessage = notesList.querySelector(".empty-state");
+    emptyMessage?.remove();
+    notesList.prepend(createNoteElement(note));
+    noteForm.reset();
+    showStatus(`Note created (status ${status}, id ${note.id}).`, "success");
+  } catch (error) {
+    showStatus("We could not create the note. Please try again.", "error");
+    console.error("Failed to create note:", error);
+  } finally {
+    submitButton.disabled = false;
+  }
+}
+
 loadButton.addEventListener("click", loadNotes);
+noteForm.addEventListener("submit", createNote);
